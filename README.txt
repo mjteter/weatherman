@@ -101,3 +101,10 @@ Will need following libraries in imports:
 -board
 -digitalio
 -pwmio
+
+
+Install GUI
+pip install pygame-ce
+pip install pygame_gui
+sudo apt install -Y libegl-dev
+
