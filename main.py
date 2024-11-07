@@ -132,6 +132,7 @@ class NOAAForecastThread(threading.Thread):
 
 def main(api_header, api_grids):
     # initialize pygame display
+    _logger.info('Initialize PyGame')
     pygame.init()
     resolution = 480, 320
     screen = pygame.display.set_mode(resolution)
@@ -148,9 +149,10 @@ def main(api_header, api_grids):
     text = 'Fonty'
     size = font.size(text)
 
-    ren = font.render(text, 0, fg, bg)
+    ren = font.render(text, False, fg, bg)
     screen.blit(ren, (10, 10))
 
+    _logger.info('PyGame Flip')
     pygame.display.flip()
 
     noaa_to_bank_queue = queue.Queue()
@@ -173,6 +175,7 @@ def main(api_header, api_grids):
 
 
 if __name__ == '__main__':
+    _logger.info('very beginning')
     socket.setdefaulttimeout(3)
 
     default_lat_long = (40.0415, -75.4841)  # default latitude and longitude (me!)
