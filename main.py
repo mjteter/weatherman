@@ -1,8 +1,6 @@
 #!/home/weatherman/.venv/bin/python
 
 import socket
-from turtledemo.penrose import start
-
 import requests
 
 import logging
@@ -12,7 +10,6 @@ import queue
 
 import pygame
 import pigpio
-from sphinx.ext.autodoc import EMPTY
 
 from psychrometric import psych
 from datetime import datetime, timedelta
