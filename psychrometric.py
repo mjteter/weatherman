@@ -14,7 +14,7 @@ def psych(output_str, input_str_1, input_1, input_str_2, input_2, pressure=29.92
     db/DB = dry bulb temperature (deg F)
     wb/WB = wet bulb temperature (deg F)
     dp/DP = dewpoint temperature (deg F)
-    rh/RH = relative humidity (percentage)
+    rh/RH = relative humidity (0-100 percentage)
     hr/HR = humidity ratio (lb/lb)
     sv/SV = specific volume (ft^3/lb dry air)
     en/EN = enthalpy (Btu/lb dry air
@@ -448,6 +448,14 @@ def calc_dewpoint(pres_vapor):
     if dewpoint < 32:
         dewpoint = 90.12 + 26.142 * log(pres_vapor) + 0.8927 * log(pres_vapor) ** 2
     return dewpoint
+
+
+def calc_heat_index(dry_bulb, rel_hum):
+    hi = ((-42.379 + 2.04901523 * dry_bulb + 10.14333127 * rel_hum - 0.22475541 * dry_bulb * rel_hum -
+          0.00683783 * dry_bulb ** 2 - 0.05481717 * rel_hum ** 2) + 0.00122874 * dry_bulb ** 2 * rel_hum +
+          0.00085282 * dry_bulb * rel_hum ** 2 - 0.00000199 * dry_bulb ** 2 * rel_hum ** 2)
+
+    return hi
 
 
 def sat_pres(temp):

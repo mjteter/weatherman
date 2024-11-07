@@ -10,6 +10,10 @@ import logging
 import threading
 import queue
 
+import pygame
+import pigpio
+from sphinx.ext.autodoc import EMPTY
+
 from psychrometric import psych
 from datetime import datetime, timedelta
 from time import sleep, time
@@ -73,16 +77,48 @@ class NOAAForecastThread(threading.Thread):
         self.noaa_to_bank_queue = noaa_to_bank_queue
         self.loop_time = loop_time
 
+    def _handle_response_data(self, response):
+        wthr_gov_time_frmt = '%Y-%m-%dT%H:%M:%S%z'
+        # lcl_srvr_time_frmt = '%Y-%m-%d %H:%M:%S'
+
+        noaa_dict = {}
+        noaa_dict['dict_type'] = 'forecast/hourly'
+        noaa_dict['generatedAt'] = datetime.strptime(
+            response['properties']['generatedAt'], wthr_gov_time_frmt).astimezone(None)
+        noaa_dict['updateTime'] = datetime.strptime(
+            response['properties']['updateTime'], wthr_gov_time_frmt).astimezone(None)
+
+        for period in response['properties']['periods']:
+            hr = int(period['number']) - 1
+            noaa_dict[hr] = {}
+
+            noaa_dict[hr]['start'] = datetime.strptime(period['startTime'], wthr_gov_time_frmt).astimezone(None)
+            noaa_dict[hr]['end'] = datetime.strptime(period['endTime'], wthr_gov_time_frmt).astimezone(None)
+
+            noaa_dict[hr]['db'] = period['temperature']
+            noaa_dict[hr]['rh'] = period['relativeHumidity']['value']
+            noaa_dict[hr]['dp'] = psych('dp', 'db', noaa_dict[hr]['db'], 'rh', noaa_dict[hr]['rh'])
+
+            noaa_dict[hr]['wind_speed'] = period['windSpeed']
+            noaa_dict[hr]['wind_dir'] = period['windDirection']
+
+            noaa_dict[hr]['prob_precip'] = period['probabilityOfPrecipitation']['value']
+
+            noaa_dict[hr]['icon'] = period['icon'].split('?')[0].split('icons/')[1]
+
+        return noaa_dict
+
     def run(self):
         start_time = time()
         sleep(0.1)
 
+        # make initial request
         try:
             response = requests.get(self.noaa_hourly_url, headers=self.api_header).json()
+            resp_dict = self._handle_response_data(response)
+            self.noaa_to_bank_queue.put(resp_dict)
         except TimeoutError:
-            response = None
-
-        print(response)
+            start_time = time()
 
         while True:
             cur_time = time()
@@ -90,22 +126,52 @@ class NOAAForecastThread(threading.Thread):
             if cur_time - start_time > self.loop_time:
                 try:
                     response = requests.get(self.noaa_hourly_url, headers=self.api_header).json()
+                    resp_dict = self._handle_response_data(response)
+                    self.noaa_to_bank_queue.put(resp_dict)
+                    start_time = time()
                 except TimeoutError:
-                    response = None
-
-
+                    start_time = time() - (self.loop_time - 30)  # if request fails, try again in 30 seconds
 
 
 def main(api_header, api_grids):
+    # initialize pygame display
+    pygame.init()
+    resolution = 480, 320
+    screen = pygame.display.set_mode(resolution)
+
+    fg = 250, 250, 250
+    bg = 5, 5, 5
+    wincolor = 40, 40, 40
+
+    # fill background
+    screen.fill(wincolor)
+
+    # load font, prepare values
+    font = pygame.Font(None, 80)
+    text = 'Fonty'
+    size = font.size(text)
+
+    ren = font.render(text, 0, fg, bg)
+    screen.blit(ren, (10, 10))
+
+    pygame.display.flip()
 
     noaa_to_bank_queue = queue.Queue()
-    noaa_forecast = NOAAForecastThread(api_header, api_grids)
+    noaa_forecast = NOAAForecastThread(api_header, api_grids, noaa_to_bank_queue)
 
     _logger.info('Start NOAA Forecast thread')
     noaa_forecast.start()
 
-    sleep(10)
+    sleep(5)
+
+    try:
+        resp = noaa_to_bank_queue.get_nowait()
+    except queue.Empty:
+        resp = None
+
+    print(resp[0])
     _logger.info('Ending program')
+    pygame.quit()
     return
 
 
