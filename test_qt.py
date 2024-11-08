@@ -1,7 +1,7 @@
 import sys
 
-from PyQt6.QtGui import QGuiApplication
-from PyQt6.QtQml import  QQmlApplicationEngine
+from PySide6.QtGui import QGuiApplication
+from PySide6.QtQml import  QQmlApplicationEngine
 
 app = QGuiApplication(sys.argv)
 
