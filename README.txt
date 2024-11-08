@@ -1,5 +1,7 @@
 https://learn.adafruit.com/adafruit-pitft-3-dot-5-touch-screen-for-raspberry-pi/easy-install-2
 
+64-bit boards seem to work better
+
 Download latest working image (2023-12-11 as of 10/27/24):
 64-bit: https://downloads.raspberrypi.org/raspios_lite_arm64/images/
 32-bit: https://downloads.raspberrypi.org/raspios_lite_armhf/images/
@@ -7,12 +9,19 @@ Download latest working image (2023-12-11 as of 10/27/24):
 
 Setup Virtual Environment:
 
+sudo apt update
+sudo apt upgrade -y
+
+xxxxsudo apt install python3-pyqt6
+sudo apt install pigpiod
+sudo apt install -y git gh python3-pip
+
 sudo apt install python3-venv
-python -m venv env --system-site-packages
+python -m venv --system-site-packages .venv
 
 Activate Virtual Environment:
 
-source env/bin/activate
+source .venv/bin/activate
 
 or
 #!/<path-to-venv>/bin/python
@@ -21,9 +30,7 @@ at top of scripts
 PiTFT Installer Script
 
 cd ~
-sudo apt-get update
-sudo apt-get -y upgrade
-sudo apt-get install -y git python3-pip
+pip install pyqt6
 pip3 install --upgrade adafruit-python-shell click
 git clone https://github.com/adafruit/Raspberry-Pi-Installer-Scripts.git
 cd Raspberry-Pi-Installer-Scripts
@@ -37,6 +44,26 @@ Or Interactive Install:
 
 sudo -E env PATH=$PATH python3 adafruit-pitft.py
 
+
+PWM Backlight Control:
+Turn off STMPE control:
+sudo sh -c 'echo "0" > /sys/class/backlight/soc\:backlight/brightness'
+
+Turn on STMPE control (will stop PWM modulation):
+sudo sh -c 'echo "1" > /sys/class/backlight/soc\:backlight/brightness'
+
+Manipulate GPIO 18 to change backlighting:
+gpio -g mode 18 pwm
+gpio pwmc 1000
+gpio -g pwm 18 100
+gpio -g pwm 18 1023
+gpio -g pwm 18 0
+
+
+
+
+
+Obsolete:
 
 Install WiringPi:
 xxxIn Python:
@@ -61,21 +88,6 @@ wget https://github.com/WiringPi/WiringPi/releases//download/3.10/wiringpi_3.10_
 
 # install a dpkg
 sudo apt install ./wiringpi-3.0-1.deb
-
-
-PWM Backlight Control:
-Turn off STMPE control:
-sudo sh -c 'echo "0" > /sys/class/backlight/soc\:backlight/brightness'
-
-Turn on STMPE control (will stop PWM modulation):
-sudo sh -c 'echo "1" > /sys/class/backlight/soc\:backlight/brightness'
-
-Manipulate GPIO 18 to change backlighting:
-gpio -g mode 18 pwm
-gpio pwmc 1000
-gpio -g pwm 18 100
-gpio -g pwm 18 1023
-gpio -g pwm 18 0
 
 
 Install RPi.GPIO:
