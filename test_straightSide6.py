@@ -1,7 +1,8 @@
 import sys
+import signal
 
-from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton
+from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton
 
 
 # Subclass QMainWindow to customize your application's main window
@@ -18,6 +19,8 @@ class MainWindow(QMainWindow):
         # Set the central widget of the Window.
         self.setCentralWidget(button)
 
+# handle ctrl+c
+signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 app = QApplication(sys.argv)
 

@@ -12,8 +12,9 @@ Setup Virtual Environment:
 sudo apt update
 sudo apt upgrade -y
 
-xxxxsudo apt install python3-pyqt6
-sudo apt install pigpiod
+sudo apt install -y python3-pyqt6 python3-pyqt6.qtqml python3-pyqt6.qtquick
+sudo apt install -y libxcb-cursor-dev
+sudo apt install -y pigpiod
 sudo apt install -y git gh python3-pip
 
 sudo apt install python3-venv
@@ -31,7 +32,7 @@ PiTFT Installer Script
 
 cd ~
 pip install pyqt6
-pip3 install --upgrade adafruit-python-shell click
+pip install --upgrade adafruit-python-shell click
 git clone https://github.com/adafruit/Raspberry-Pi-Installer-Scripts.git
 cd Raspberry-Pi-Installer-Scripts
 
